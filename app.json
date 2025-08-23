@@ -1,0 +1,43 @@
+{
+  "expo": {
+  "name": "Hizbullahi Pro",
+    "slug": "hblk-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "hblkapp",
+  "icon": "./assets/images/icone.png",
+    "splash": {
+      "image": "./assets/images/icone.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "hideExponentText": true,
+  "tabletImage": "./assets/images/icone.png"
+    },
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icone.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.hblkapp"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+  "favicon": "./assets/images/favicon.jpeg"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  }
+}
