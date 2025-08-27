@@ -6,8 +6,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { Colors } from '@/constants/Colors';
+import { useResolvedTheme } from '@/hooks/useThemeColor';
 
 export default function DurussScreen() {
+  const theme = useResolvedTheme();
   const { durus, loading: durusLoading, refresh } = useDurusStore();
   const [stats, setStats] = useState<Record<string, { sounds_count: number; downloads_count: number; pages: number }>>({});
   const [loading, setLoading] = useState(true);
@@ -90,25 +93,43 @@ export default function DurussScreen() {
     });
   };
 
+  const handleDelete = async (item: Qassida) => {
+    console.log('🗑️ Suppression du Qassaid:', { id: item.id, title: item.title });
+    
+    try {
+      const success = await DataService.removeDurus(item.id);
+      if (success) {
+        // Rafraîchir la liste des Durus
+        refresh();
+        console.log('✅ Qassaid supprimé des téléchargements');
+      } else {
+        setErrorMsg('Erreur lors de la suppression. Veuillez réessayer.');
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la suppression:', error);
+      setErrorMsg('Erreur lors de la suppression. Veuillez réessayer.');
+    }
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff', paddingTop: 16 }}>
+    <View style={{ flex: 1, backgroundColor: Colors[theme].background, paddingTop: 16 }}>
       {loading || durusLoading ? (
         <>
-          <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color={Colors[theme].accent} style={{ marginTop: 40 }} />
           <View style={{ alignItems: 'center', marginTop: 16 }}>
             <QassaidList qassaid={[]} onRead={handleRead} />
           </View>
         </>
       ) : errorMsg ? (
         <View style={{ alignItems: 'center', marginTop: 60 }}>
-          <ThemedText style={{ color: '#b71c1c', fontWeight: 'bold', fontSize: 16, textAlign: 'center', backgroundColor: '#ffeaea', padding: 12, borderRadius: 8 }}>{errorMsg}</ThemedText>
+          <ThemedText style={{ color: Colors[theme].error, fontWeight: 'bold', fontSize: 16, textAlign: 'center', backgroundColor: '#2C2C2C', padding: 12, borderRadius: 8 }}>{errorMsg}</ThemedText>
         </View>
       ) : qassaidForList.length === 0 ? (
         <View style={{ alignItems: 'center', marginTop: 60 }}>
-          <ThemedText style={{ color: '#999', fontSize: 16, fontStyle: 'italic', textAlign: 'center' }}>Aucun qassaïd téléchargé pour le moment.</ThemedText>
+          <ThemedText style={{ color: Colors[theme].textSecondary, fontSize: 16, fontStyle: 'italic', textAlign: 'center' }}>Aucun qassaïd téléchargé pour le moment.</ThemedText>
         </View>
       ) : (
-        <QassaidList qassaid={qassaidForList} onRead={handleRead} />
+        <QassaidList qassaid={qassaidForList} onRead={handleRead} onDelete={handleDelete} />
       )}
     </View>
   );

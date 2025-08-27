@@ -2,8 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Colors } from '@/constants/Colors';
+import { useResolvedTheme } from '@/hooks/useThemeColor';
 
 export default function LearnScreen() {
+  const theme = useResolvedTheme();
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,12 +23,12 @@ export default function LearnScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: Colors[theme].background }]}>
       <View style={styles.header}>
-        <Ionicons name="school" size={30} color="#4CAF50" />
-        <Text style={styles.title}>Apprendre</Text>
+        <Ionicons name="school" size={30} color={Colors[theme].accent} />
+        <Text style={[styles.title, { color: Colors[theme].text } ]}>Apprendre</Text>
       </View>
-      <Text style={styles.subtitle}>Fonctionnalités d'apprentissage à venir...</Text>
+      <Text style={[styles.subtitle, { color: Colors[theme].textSecondary }]}>Fonctionnalités d'apprentissage à venir...</Text>
     </View>
   );
 }

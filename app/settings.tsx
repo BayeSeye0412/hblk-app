@@ -1,13 +1,65 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Colors } from '@/constants/Colors';
+import { useResolvedTheme } from '@/hooks/useThemeColor';
+import { useThemeStore, saveThemePreference, ThemePreference } from '@/hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
+  const theme = useResolvedTheme();
+  const { preference, setPreference } = useThemeStore();
+
+  const applyPreference = async (pref: ThemePreference) => {
+    await saveThemePreference(pref);
+    setPreference(pref);
+  };
+
+  const themedStyles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors[theme].background,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: Colors[theme].accent,
+      marginBottom: 10,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    settingItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors[theme].border,
+    },
+    settingLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    settingLabel: {
+      fontSize: 16,
+      marginLeft: 15,
+      color: Colors[theme].text,
+    },
+    settingValue: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    settingValueText: {
+      fontSize: 14,
+      color: Colors[theme].textSecondary,
+      marginRight: 8,
+    },
+  });
 
   return (
-    <View style={styles.container}>
+    <View style={themedStyles.container}>
       <View style={{ alignItems: 'center', paddingTop: 0, paddingBottom: 10 }}>
         <TouchableOpacity onPress={() => router.replace('/menu')} activeOpacity={0.7}>
           
@@ -44,6 +96,23 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </View>
           </TouchableOpacity>
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Ionicons name="moon" size={20} color={Colors[theme].accent} />
+              <Text style={styles.settingLabel}>Apparence</Text>
+            </View>
+            <View style={styles.settingValue}>
+              <TouchableOpacity onPress={() => applyPreference('system')} style={{ marginRight: 12 }}>
+                <Text style={{ color: preference === 'system' ? Colors[theme].accent : Colors[theme].textSecondary }}>Système</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => applyPreference('light')} style={{ marginRight: 12 }}>
+                <Text style={{ color: preference === 'light' ? Colors[theme].accent : Colors[theme].textSecondary }}>Clair</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => applyPreference('dark')}>
+                <Text style={{ color: preference === 'dark' ? Colors[theme].accent : Colors[theme].textSecondary }}>Sombre</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -51,10 +120,6 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
   content: {
     flex: 1,
   },

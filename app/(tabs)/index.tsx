@@ -5,9 +5,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { Colors } from '@/constants/Colors';
+import { useResolvedTheme } from '@/hooks/useThemeColor';
 import { ThemedText } from "@/components/ThemedText";
 
 export default function QassaidScreen() {
+  const theme = useResolvedTheme();
   const [qassaid, setQassaid] = useState<QassaidItem[]>([]);
   const [durus, setDurus] = useState<DurusItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,16 +92,16 @@ export default function QassaidScreen() {
     }));
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: Colors[theme].background }}>
       {loading ? (
-        <ActivityIndicator size="large" color="#02701e" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color={Colors[theme].accent} style={{ marginTop: 40 }} />
       ) : errorMsg ? (
         <View style={{ alignItems: 'center', marginTop: 60 }}>
-          <ThemedText style={{ color: '#b71c1c', fontWeight: 'bold', fontSize: 16, textAlign: 'center', backgroundColor: '#ffeaea', padding: 12, borderRadius: 8 }}>{errorMsg}</ThemedText>
+          <ThemedText style={{ color: Colors[theme].error, fontWeight: 'bold', fontSize: 16, textAlign: 'center', backgroundColor: '#2C2C2C', padding: 12, borderRadius: 8 }}>{errorMsg}</ThemedText>
         </View>
       ) : qassaidForList.length === 0 ? (
         <View style={{ alignItems: 'center', marginTop: 60 }}>
-          <ThemedText style={{ color: '#999', fontSize: 16, fontStyle: 'italic', textAlign: 'center' }}>Aucun qassaïd disponible pour le moment.</ThemedText>
+          <ThemedText style={{ color: Colors[theme].textSecondary, fontSize: 16, fontStyle: 'italic', textAlign: 'center' }}>Aucun qassaïd disponible pour le moment.</ThemedText>
         </View>
       ) : (
         <QassaidList qassaid={qassaidForList} onDownload={handleDownload} onRead={handleRead} />

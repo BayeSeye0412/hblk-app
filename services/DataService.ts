@@ -250,6 +250,9 @@ export class DataService {
         return false;
       }
       
+      // Incrémenter le compteur permanent de téléchargements
+      await this.incrementDownloadCount(qassaidId);
+      
       console.log('✅ Qassaid téléchargé:', data);
       return true;
     } catch (error) {
@@ -323,9 +326,23 @@ export class DataService {
     }
   }
 
-  // Compter les téléchargements d'un qassaid spécifique
+  // Compter les téléchargements d'un qassaid spécifique (compteur global permanent)
   static async getQassaidDownloadCount(qassaidId: string): Promise<number> {
     try {
+      // Option 1: Utiliser une table séparée "download_stats" si elle existe
+      const { data: statsData, error: statsError } = await supabase
+        .from('download_stats')
+        .select('download_count')
+        .eq('qassaid_id', qassaidId)
+        .single();
+      
+      if (!statsError && statsData) {
+        return statsData.download_count || 0;
+      }
+      
+      // Option 2 (fallback): Si pas de table stats, utiliser un compteur basé sur l'historique
+      // Ici on peut compter TOUS les téléchargements historiques, même supprimés
+      // Pour l'instant, on retourne le compteur actuel mais on pourrait faire différemment
       const { count, error } = await supabase
         .from('durus')
         .select('*', { count: 'exact', head: true })
@@ -336,11 +353,57 @@ export class DataService {
         return 0;
       }
       
-      console.log(`✅ ${count || 0} téléchargements pour qassaid ${qassaidId}`);
+      console.log(`✅ ${count || 0} téléchargements actuels pour qassaid ${qassaidId}`);
       return count || 0;
     } catch (error) {
       console.error('❌ Erreur catch getQassaidDownloadCount:', error);
       return 0;
+    }
+  }
+
+  // Méthode pour incrémenter le compteur permanent lors d'un téléchargement
+  static async incrementDownloadCount(qassaidId: string): Promise<boolean> {
+    try {
+      // Essayer d'insérer ou mettre à jour le compteur dans download_stats
+      const { data: existingStats, error: selectError } = await supabase
+        .from('download_stats')
+        .select('download_count')
+        .eq('qassaid_id', qassaidId)
+        .single();
+      
+      if (selectError && selectError.code !== 'PGRST116') {
+        // Erreur autre que "pas trouvé"
+        console.error('❌ Erreur select download_stats:', selectError.message);
+        return false;
+      }
+      
+      if (existingStats) {
+        // Mettre à jour le compteur existant
+        const { error: updateError } = await supabase
+          .from('download_stats')
+          .update({ download_count: existingStats.download_count + 1 })
+          .eq('qassaid_id', qassaidId);
+        
+        if (updateError) {
+          console.error('❌ Erreur update download_stats:', updateError.message);
+          return false;
+        }
+      } else {
+        // Créer un nouveau compteur
+        const { error: insertError } = await supabase
+          .from('download_stats')
+          .insert({ qassaid_id: qassaidId, download_count: 1 });
+        
+        if (insertError) {
+          console.error('❌ Erreur insert download_stats:', insertError.message);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur catch incrementDownloadCount:', error);
+      return false;
     }
   }
 
