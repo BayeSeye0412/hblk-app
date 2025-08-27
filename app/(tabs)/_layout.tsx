@@ -92,6 +92,16 @@ export default function TabLayout() {
         ),
       }}
     >
+
+       <Tabs.Screen
+  name="durus"
+        options={{
+          title: 'Duruss',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="reader" size={size} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{
@@ -101,15 +111,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-  name="durus"
-        options={{
-          title: 'Duruss',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="reader" size={size} color={color} />
-          ),
-        }}
-      />
+     
       <Tabs.Screen
         name="sounds"
         options={{

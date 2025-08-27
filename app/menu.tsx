@@ -30,7 +30,7 @@ export default function MenuScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content}>
+  <ScrollView style={[styles.content, { paddingBottom: 80 }] }>
         <View style={styles.logoSection}>
           <View style={styles.logoPlaceholder}>
             <Ionicons name="book" size={50} color="#4CAF50" />
@@ -42,17 +42,6 @@ export default function MenuScreen() {
         <View style={styles.menuSection}>
           <TouchableOpacity 
             style={styles.menuItem}
-            onPress={() => navigateTo('qassaid')}
-          >
-            <View style={styles.menuLeft}>
-              <Ionicons name="book" size={24} color="#4CAF50" />
-              <Text style={styles.menuLabel}>Qassaid</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.menuItem}
             onPress={() => navigateTo('duruss')}
           >
             <View style={styles.menuLeft}>
@@ -62,6 +51,16 @@ export default function MenuScreen() {
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
 
+ <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigateTo('qassaid')}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name="book" size={24} color="#4CAF50" />
+              <Text style={styles.menuLabel}>Qassaid</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </TouchableOpacity>
           <TouchableOpacity 
             style={styles.menuItem}
             onPress={() => navigateTo('sounds')}
@@ -86,7 +85,7 @@ export default function MenuScreen() {
         </View>
 
         <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings?tab=favorites')}>
             <View style={styles.menuLeft}>
               <Ionicons name="heart" size={24} color="#4CAF50" />
               <Text style={styles.menuLabel}>Mes Favoris</Text>
@@ -94,10 +93,18 @@ export default function MenuScreen() {
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={[styles.menuItem, { marginTop: 16 }]} onPress={() => router.push({ pathname: '/settings' })}>
             <View style={styles.menuLeft}>
-              <Ionicons name="download" size={24} color="#4CAF50" />
-              <Text style={styles.menuLabel}>Téléchargements</Text>
+              <Ionicons name="settings" size={24} color="#4CAF50" />
+              <Text style={styles.menuLabel}>Paramètres</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings?tab=about')}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="information-circle" size={24} color="#4CAF50" />
+              <Text style={styles.menuLabel}>À propos</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
@@ -117,7 +124,7 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     marginBottom: 20,
