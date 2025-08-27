@@ -5,42 +5,6 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MenuScreen() {
-  const insets = useSafeAreaInsets();
-
-  // Header personnalisé avec SafeArea native
-  const CustomHeader = () => (
-    <View style={{
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: '#fff',
-      height: 44 + insets.top,
-      paddingTop: insets.top,
-      paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    }}>
-      <TouchableOpacity 
-        onPress={() => router.back()}
-        activeOpacity={0.7}
-        style={{ width: 44, alignItems: 'flex-start' }}
-      >
-        <Ionicons name="close" size={28} color="#4CAF50" />
-      </TouchableOpacity>
-
-      <Text style={{
-        flex: 1,
-        textAlign: 'center',
-        fontWeight: 'bold',
-        fontSize: 17,
-        color: '#000000',
-      }}>
-        Menu
-      </Text>
-
-      <View style={{ width: 44 }} />
-    </View>
-  );
 
   const navigateTo = (screen: string) => {
     router.back();
@@ -50,7 +14,7 @@ export default function MenuScreen() {
           router.replace('/');
           break;
         case 'duruss':
-          router.replace('/(tabs)/explore');
+          router.replace({ pathname: '/(tabs)/durus' });
           break;
         case 'sounds':
           router.replace('/(tabs)/sounds');
@@ -66,8 +30,6 @@ export default function MenuScreen() {
 
   return (
     <View style={styles.container}>
-      <CustomHeader />
-      
       <ScrollView style={styles.content}>
         <View style={styles.logoSection}>
           <View style={styles.logoPlaceholder}>

@@ -1,53 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets();
-
-  // Header personnalisé avec SafeArea native
-  const CustomHeader = () => (
-    <View style={{
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: '#fff',
-      height: 44 + insets.top,
-      paddingTop: insets.top,
-      paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    }}>
-      <TouchableOpacity 
-        onPress={() => {
-          router.replace('/menu'); // Remplace directement par le menu (pas de double navigation)
-        }}
-        activeOpacity={0.7}
-        style={{ width: 44, alignItems: 'flex-start' }}
-      >
-        <Ionicons name="arrow-back" size={28} color="#4CAF50" />
-      </TouchableOpacity>
-
-      <Text style={{
-        flex: 1,
-        textAlign: 'center',
-        fontWeight: 'bold',
-        fontSize: 17,
-        color: '#000000',
-      }}>
-        Paramètres
-      </Text>
-
-      <View style={{ width: 44 }} />
-    </View>
-  );
 
   return (
     <View style={styles.container}>
-      <CustomHeader />
-      
+      <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}>
+        <TouchableOpacity onPress={() => router.replace('/menu')} activeOpacity={0.7}>
+          <View style={{ alignItems: 'center' }}>
+            <Image source={require('@/assets/images/icone.png')} style={{ width: 60, height: 60, borderRadius: 16, marginBottom: 8 }} />
+            <Text style={{ fontWeight: 'bold', fontSize: 20, color: '#4CAF50' }}>Paramètres</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Général</Text>

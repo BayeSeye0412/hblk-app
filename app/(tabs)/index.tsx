@@ -5,45 +5,52 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { ThemedText } from "@/components/ThemedText";
 
 export default function QassaidScreen() {
   const [qassaid, setQassaid] = useState<QassaidItem[]>([]);
   const [durus, setDurus] = useState<DurusItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Record<string, { sounds_count: number; downloads_count: number; pages: number }>>({});
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchAll = async () => {
     setLoading(true);
-    const [qassaidData, durusData] = await Promise.all([
-      DataService.getQassaid(),
-      DataService.getDurus(),
-    ]);
-    setQassaid(qassaidData);
-    setDurus(durusData);
-
-    // Récupérer les stats pour chaque Qassida
-    const statsObj: Record<string, { sounds_count: number; downloads_count: number; pages: number }> = {};
-    await Promise.all(qassaidData.map(async (item) => {
-      // Nombre de sons
-      const sounds = await DataService.getSounds();
-      const soundsCount = sounds.filter(s => s.qassaid_id === item.id).length;
-      // Nombre de téléchargements
-      const downloadsCount = await DataService.getQassaidDownloadCount(item.id);
-      // Nombre de pages (récupéré dynamiquement depuis la colonne 'pages')
-      let pages = item.pages ?? item.size ?? 0;
-      if (!pages && item.pdf_url) {
-        // Si la colonne pages n'est pas renseignée, tente de la récupérer dynamiquement
-        pages = await DataService.getQassaidPages(item.id, item.pdf_url);
-      }
-      statsObj[item.id] = {
-        sounds_count: soundsCount,
-        downloads_count: downloadsCount,
-        pages,
-      };
-    }));
-    setStats(statsObj);
-    setLoading(false);
+    setErrorMsg(null);
+    try {
+      const [qassaidData, durusData] = await Promise.all([
+        DataService.getQassaid(),
+        DataService.getDurus(),
+      ]);
+      setQassaid(qassaidData);
+      setDurus(durusData);
+      // Récupérer les stats pour chaque Qassida
+      const statsObj: Record<string, { sounds_count: number; downloads_count: number; pages: number }> = {};
+      await Promise.all(qassaidData.map(async (item) => {
+        try {
+          const sounds = await DataService.getSounds();
+          const soundsCount = sounds.filter(s => s.qassaid_id === item.id).length;
+          const downloadsCount = await DataService.getQassaidDownloadCount(item.id);
+          let pages = item.pages ?? item.size ?? 0;
+          if (!pages && item.pdf_url) {
+            pages = await DataService.getQassaidPages(item.id, item.pdf_url);
+          }
+          statsObj[item.id] = {
+            sounds_count: soundsCount,
+            downloads_count: downloadsCount,
+            pages,
+          };
+        } catch (err) {
+          statsObj[item.id] = { sounds_count: 0, downloads_count: 0, pages: 0 };
+        }
+      }));
+      setStats(statsObj);
+    } catch (err: any) {
+      setErrorMsg('Erreur lors du chargement des données. Vérifiez votre connexion.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useFocusEffect(
@@ -85,6 +92,14 @@ export default function QassaidScreen() {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {loading ? (
         <ActivityIndicator size="large" color="#02701e" style={{ marginTop: 40 }} />
+      ) : errorMsg ? (
+        <View style={{ alignItems: 'center', marginTop: 60 }}>
+          <ThemedText style={{ color: '#b71c1c', fontWeight: 'bold', fontSize: 16, textAlign: 'center', backgroundColor: '#ffeaea', padding: 12, borderRadius: 8 }}>{errorMsg}</ThemedText>
+        </View>
+      ) : qassaidForList.length === 0 ? (
+        <View style={{ alignItems: 'center', marginTop: 60 }}>
+          <ThemedText style={{ color: '#999', fontSize: 16, fontStyle: 'italic', textAlign: 'center' }}>Aucun qassaïd disponible pour le moment.</ThemedText>
+        </View>
       ) : (
         <QassaidList qassaid={qassaidForList} onDownload={handleDownload} onRead={handleRead} />
       )}

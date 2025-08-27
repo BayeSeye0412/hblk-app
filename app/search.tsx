@@ -2,51 +2,52 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator } from 'react-native';
 
 export default function SearchScreen() {
-  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [results, setResults] = useState<{ qassaid: any[]; duruss: any[]; audio: any[] }>({ qassaid: [], duruss: [], audio: [] });
 
-  // Header personnalisé avec SafeArea native
-  const CustomHeader = () => (
-    <View style={{
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: '#fff',
-      height: 44 + insets.top,
-      paddingTop: insets.top,
-      paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    }}>
-      <TouchableOpacity 
-        onPress={() => router.back()}
-        activeOpacity={0.7}
-        style={{ width: 44, alignItems: 'flex-start' }}
-      >
-        <Ionicons name="arrow-back" size={28} color="#4CAF50" />
-      </TouchableOpacity>
-
-      <Text style={{
-        flex: 1,
-        textAlign: 'center',
-        fontWeight: 'bold',
-        fontSize: 17,
-        color: '#000000',
-      }}>
-        Recherche
-      </Text>
-
-      <View style={{ width: 44 }} />
-    </View>
-  );
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    setErrorMsg(null);
+    if (!query) {
+      setResults({ qassaid: [], duruss: [], audio: [] });
+      return;
+    }
+    setLoading(true);
+    try {
+      // Appels API réels
+      const [qassaid, duruss, audio] = await Promise.all([
+        import('@/services/DataService').then(m => m.DataService.searchQassaid(query)),
+        import('@/services/DataService').then(m => m.DataService.getDurus()),
+        import('@/services/DataService').then(m => m.DataService.searchSounds(query)),
+      ]);
+      // Exclure les Qassaid déjà téléchargés
+      const downloadedIds = new Set(duruss.map((d: any) => d.qassaid_id));
+      const filteredQassaid = qassaid.filter((item: any) => !downloadedIds.has(item.id));
+      // Tri alphabétique
+      const sortByTitle = (arr: any[]) => arr.slice().sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      setResults({
+        qassaid: sortByTitle(filteredQassaid),
+        duruss: sortByTitle(duruss),
+        audio: sortByTitle(audio),
+      });
+      if (filteredQassaid.length === 0 && duruss.length === 0 && audio.length === 0) {
+        setErrorMsg('Aucun résultat trouvé pour votre recherche.');
+      }
+    } catch (err: any) {
+      setErrorMsg('Erreur lors de la recherche. Vérifiez votre connexion.');
+      setResults({ qassaid: [], duruss: [], audio: [] });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <CustomHeader />
-      
       <View style={styles.content}>
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
@@ -56,11 +57,11 @@ export default function SearchScreen() {
               placeholder="Rechercher dans Qassaid, Duruss..."
               placeholderTextColor="#999"
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearch}
               autoFocus
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <TouchableOpacity onPress={() => handleSearch('')}>
                 <Ionicons name="close-circle" size={20} color="#999" />
               </TouchableOpacity>
             )}
@@ -74,33 +75,72 @@ export default function SearchScreen() {
               <Text style={styles.emptyText}>Saisissez votre recherche</Text>
               <Text style={styles.emptySubtext}>Recherchez dans les Qassaid, Duruss et plus encore</Text>
             </View>
+          ) : loading ? (
+            <View style={styles.emptyState}>
+              <ActivityIndicator size="large" color="#4CAF50" />
+              <Text style={styles.emptyText}>Recherche en cours...</Text>
+            </View>
+          ) : errorMsg ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="alert" size={60} color="#b71c1c" />
+              <Text style={styles.emptyText}>{errorMsg}</Text>
+            </View>
           ) : (
             <View style={styles.suggestions}>
-              <Text style={styles.sectionTitle}>Suggestions</Text>
-              
-              <TouchableOpacity style={styles.suggestionItem}>
-                <View style={styles.suggestionLeft}>
-                  <Ionicons name="book" size={20} color="#4CAF50" />
-                  <Text style={styles.suggestionLabel}>Qassida: {searchQuery}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.suggestionItem}>
-                <View style={styles.suggestionLeft}>
-                  <Ionicons name="reader" size={20} color="#4CAF50" />
-                  <Text style={styles.suggestionLabel}>Duruss: {searchQuery}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#999" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.suggestionItem}>
-                <View style={styles.suggestionLeft}>
-                  <Ionicons name="musical-notes" size={20} color="#4CAF50" />
-                  <Text style={styles.suggestionLabel}>Audio: {searchQuery}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#999" />
-              </TouchableOpacity>
+              {results.qassaid.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Qassaid</Text>
+                  {results.qassaid.map((item: any) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.suggestionItem}
+                      onPress={() => router.push({ pathname: '/pdf', params: { id: item.id, title: item.title, uri: item.pdf_url } })}
+                    >
+                      <View style={styles.suggestionLeft}>
+                        <Ionicons name="book" size={20} color="#4CAF50" />
+                        <Text style={styles.suggestionLabel}>{item.title}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color="#999" />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+              {results.duruss.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Duruss</Text>
+                  {results.duruss.map((item: any) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.suggestionItem}
+                      onPress={() => item.qassaid?.pdf_url && router.push({ pathname: '/pdf', params: { id: item.qassaid.id, title: item.qassaid.title, uri: item.qassaid.pdf_url } })}
+                    >
+                      <View style={styles.suggestionLeft}>
+                        <Ionicons name="reader" size={20} color="#4CAF50" />
+                        <Text style={styles.suggestionLabel}>{item.qassaid?.title || 'Durus'}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color="#999" />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+              {results.audio.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Audio</Text>
+                  {results.audio.map((item: any) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.suggestionItem}
+                      onPress={() => router.push({ pathname: '/(tabs)/sounds', params: { id: item.id, title: item.title } })}
+                    >
+                      <View style={styles.suggestionLeft}>
+                        <Ionicons name="musical-notes" size={20} color="#4CAF50" />
+                        <Text style={styles.suggestionLabel}>{item.title}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color="#999" />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
             </View>
           )}
         </ScrollView>
